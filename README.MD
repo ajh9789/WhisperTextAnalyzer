@@ -17,24 +17,24 @@
   <img src="https://img.shields.io/badge/Git-Version%20Control-F05032?logo=git&logoColor=white"/>
 </p>
 
-# 🎧 WhisperTextAnalyzer
+# WhisperTextAnalyzer
 
 > **실시간 음성 스트리밍 → STT → 감정 분석까지**  
 > End-to-End 파이프라인을 구현한 웹 기반 음성 인식 시스템
 
 ---
-🎯 본 프로젝트는 실무에 가까운 **MSA + 비동기 Task Queue 구조**를 직접 설계하고 **Docker 기반으로 배포**한 예제입니다.  
-- 🎙️ **브라우저 AudioWorklet → FastAPI WebSocket → Redis/Celery Task Queue → STT/감정 분석**  
+본 프로젝트는 실무에 가까운 **MSA + 비동기 Task Queue 구조**를 직접 설계하고 **Docker 기반으로 배포**한 예제입니다.  
+- **브라우저 AudioWorklet → FastAPI WebSocket → Redis/Celery Task Queue → STT/감정 분석**  
 - 실제 서비스 흐름을 유사하게 구성하여, **실시간 음성 → 텍스트 → 감정 분석**까지 자동 처리하며  
 - **Azure Linux 서버 + nginx + DuckDNS + HTTPS 인증서**까지 포함한 **실제 배포 경험**까지 수행하였습니다.
 ---
-## 📸 WhisperTextAnalyzer 시스템 실행 예시
+## WhisperTextAnalyzer 시스템 실행 예시
 
 <p>
   <img src="img.jpg" alt="WhisperTextAnalyzer 시스템 실행 예시" width="50%"/>
 </p>
 
-## 🎉 최종 소감
+## 최종 소감
 
 ---
 - Python + FastAPI + Redis + Celery 기반의 STT 및 감정 분석 파이프라인을 직접 설계하고, **개발부터 Docker 배포까지 전 과정을 혼자 구현**
@@ -45,7 +45,7 @@
 - AudioWorklet 내에 VAD(Vocal Activity Detection) 필터를 적용하여 무음 구간을 제거함으로써, 네트워크 부하와 STT 비용을 효율적으로 절감
 - 일부 세부 구현 및 문법 확인 과정에서는 ChatGPT를 적극 활용하여 생산성을 높였으며, 전반적인 설계와 디버깅은 직접 수행
 ---
-## 📌 프로젝트 개요
+## 프로젝트 개요
 - 브라우저(Web Audio API + AudioWorklet)에서 마이크 입력을 캡처하여 FastAPI 서버로 전송
 - FastAPI WebSocket 서버가 수신한 오디오 데이터를 STT 작업용 Celery Task(transcribe_audio)로 비동기 호출 → stt_queue 등록
 - stt_worker가 OpenAI Whisper로 음성 인식(STT) 수행 후, Celery Task(analyze_text)를 비동기 호출 → analyzer_queue 등록
@@ -54,7 +54,7 @@
 - FastAPI가 두 채널을 구독하여, WebSocket을 통해 브라우저에 실시간 결과와 통계를 업데이트
 ---
 
-## 🛠️ 시스템 아키텍처
+## 시스템 아키텍처
 
 ```
 Browser (AudioWorklet: 마이크 입력 + 16kHz PCM 변환)
@@ -94,7 +94,7 @@ Browser 실시간 결과 표시
 - listener_service : 결과 및 통계 출력
 - fastapi_service : WebSocket 서버 + 클라이언트 UI
 ---
-## ✅ 기술 개선 요약 및 구조 안정화 현황
+## 기술 개선 요약 및 구조 안정화 현황
 
 | 개선 항목                                             | 상태 |
 |---------------------------------------------------|------|
@@ -112,97 +112,97 @@ Browser 실시간 결과 표시
 | HTTPS/도메인 우회 테스트(ngrok)                           | ✅ 실습 완료 |
 | Azure VM + DuckDNS + SSL 인증서 + nginx + Docker 실서버 운영| ✅ 실배포 완료 |
 ---
-## 🧩 주요 문제 및 개선, 학습 내역 1️⃣6️⃣개
+## 🧩 주요 문제 및 개선, 학습 내역 16개
 
-### 1️⃣ whisper 패키지 충돌 → openai-whisper 명확히 사용
+### 1. whisper 패키지 충돌 → openai-whisper 명확히 사용
 
 ```python
 import whisper as openai_whisper
 ```
 
-### 2️⃣ Windows Docker + Celery crash → pool=solo로 해결
+### 2. Windows Docker + Celery crash → pool=solo로 해결
 
 ```bash
 celery -A stt_worker:celery worker -Q stt_queue --loglevel=info --concurrency=1 --pool=solo
 ```
 
-### 3️⃣ 브라우저 샘플링 mismatch → AudioWorklet + 16kHz 고정 개선
+### 3. 브라우저 샘플링 mismatch → AudioWorklet + 16kHz 고정 개선
 
 - AudioContext({ sampleRate: 16000 })
 - AudioWorklet → FastAPI로 실시간 binary stream 전송
 
-### 4️⃣ HTTPS 필수 이슈 → ngrok으로 임시 우회 (개발 테스트)
+### 4. HTTPS 필수 이슈 → ngrok으로 임시 우회 (개발 테스트)
 
 ```bash
 ngrok http 8000
 ```
 
-### 5️⃣ FastAPI WebSocket → receive_bytes()로 변경하여 binary 안정 수신
+### 5. FastAPI WebSocket → receive_bytes()로 변경하여 binary 안정 수신
 
 ```python
 await websocket.receive_bytes()
 ```
 
-### 6️⃣ Celery send_task()로 컨테이너 간 독립성 확보
+### 6. Celery send_task()로 컨테이너 간 독립성 확보
 
 ```python
 celery.send_task("stt_worker.transcribe_audio", args=[audio_chunk], queue="stt_queue")
 ```
 
-### 7️⃣ Redis default queue 방지 → queue 명시
+### 7. Redis default queue 방지 → queue 명시
 
 ```bash
 celery -A analyzer_worker:celery worker -Q analyzer_queue --loglevel=info
 ```
 
-### 8️⃣ connection별 buffer 구조로 다중 사용자 안정성 확보
+### 8. connection별 buffer 구조로 다중 사용자 안정성 확보
 
 ```python
 connected_users[websocket] = {"buffer": bytearray(), "start_time": None}
 ```
 
-### 9️⃣ Silence Threshold 개선 → 에너지 기준을 0.0005로 조정하여 음성 인식 민감도 개선
+### 9. Silence Threshold 개선 → 에너지 기준을 0.0005로 조정하여 음성 인식 민감도 개선
 
 ```javascript
 if (energy < 0.0005) return true;
 ```
 
-### 1️⃣0️⃣ FastAPI 서버 시작 시 Redis Subscriber 비동기 등록 구조로 개선
+### 10. FastAPI 서버 시작 시 Redis Subscriber 비동기 등록 구조로 개선
 
 ```python
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(redis_subscriber())
 ```
-### 1️⃣1️⃣ WebSocket 통신 구조 학습 → 연결 유지 방식 및 WebSocket 특성 학습  
+### 11. WebSocket 통신 구조 학습 → 연결 유지 방식 및 WebSocket 특성 학습  
 
 > WebSocket은 HTTP와 달리 지속적인 양방향 연결을 유지하며,  
 FastAPI 내부에서 .send_text() 또는 .send_bytes()를 통해 실시간 푸시가 가능함.  
 클라이언트가 명시적으로 연결을 닫거나 네트워크 오류가 발생하지 않는 이상 연결은 계속 유지됨.  
 → 오디오 버퍼를 1초마다 전송해도 연결을 새로 여는 구조는 아님
 ---
-### 1️⃣2️⃣ AudioWorklet 동작 원리 및 128프레임 처리 주기 학습  
+### 12. AudioWorklet 동작 원리 및 128프레임 처리 주기 학습  
 
 > AudioWorkletProcessor는 약 128 샘플 단위 / 8ms 간격으로 process() 호출됨 (sampleRate: 16000 기준)  
 내부에서 Float32 → Int16 변환 후, port.postMessage()를 통해 FastAPI로 전달  
 WebSocket 전송 시 자동으로 ArrayBuffer → 바이너리 스트림으로 직렬화됨 → 서버에서는 receive_bytes()로 수신  
 각 프레임의 에너지를 계산하여 VAD 필터링을 적용함 (energy < 0.0005 시 무음으로 판단)  
 ---
-### 1️⃣3️⃣ PCM vs WAV 차이 학습 → Whisper 입력 구조 학습  
+### 13. PCM vs WAV 차이 학습 → Whisper 입력 구조 학습  
 
 > PCM은 디지털 오디오의 원본(raw) 데이터이고, WAV는 여기에 헤더를 붙인 파일 포맷  
 Whisper는 16kHz, mono 채널, int16 PCM 포맷을 요구함  
 따라서 scipy.io.wavfile.write()를 통해 .wav 파일로 저장 후 Whisper 입력에 사용  
 ---
-### 1️⃣4️⃣ Redis Pub/Sub 구조 학습 → 다중 채널 구독 및 재발행 처리 학습  
+### 14. Redis Pub/Sub 구조 학습 → 다중 채널 구독 및 재발행 처리 학습  
 
 > listener_service는 result_channel을 구독하여 STT 결과 수신  
 결과 메시지는 result_messages, 통계 메시지는 final_stats 채널로 각각 재발행  
 FastAPI는 두 채널을 asyncio.create_task()로 구독하여, WebSocket을 통해 브라우저에 실시간 전송 
 ---
-### 1️⃣5️⃣ ️오디오 입력 포맷 이해 및 Float32 → Int16 변환 이유 학습  
+### 15. ️오디오 입력 포맷 이해 및 Float32 → Int16 변환 이유 학습  
 
-🎤 마이크 입력 기본 포맷 비교  
+#### 마이크 입력 기본 포맷 비교  
 
 | 플랫폼 | 오디오 캡처 방식 | 기본 포맷 | 비고 |
 |--------|------------------|------------|------|
@@ -212,7 +212,7 @@ FastAPI는 두 채널을 asyncio.create_task()로 구독하여, WebSocket을 통
 
 > 즉, **브라우저 기반 입력은 항상 `Float32`**, Whisper 등 STT 모델은 **`Int16 PCM`**을 요구  
 
-🔁 Float32 vs Int16 비교
+#### Float32 vs Int16 비교
 
 | 항목 | `Float32` | `Int16` |
 |------|-----------|---------|
@@ -220,35 +220,35 @@ FastAPI는 두 채널을 asyncio.create_task()로 구독하여, WebSocket을 통
 | **비트 수 / 용량** | 32비트 (4바이트) | 16비트 (2바이트) |
 | **값의 범위** | -1.0 ~ +1.0 | -32,768 ~ +32,767 |
 | **정밀도** | 소수점 표현 가능 | 정수만 표현 |
-| **Web Audio API 기본 포맷** | ✅ 기본 출력 | ❌ 직접 지원 안 함 |
-| **STT 모델 입력 지원 (Whisper 등)** | ❌ 지원 안 함 | ✅ 기본 요구 포맷 |
+| **Web Audio API 기본 포맷** | 기본 출력 | 직접 지원 안 함 |
+| **STT 모델 입력 지원 (Whisper 등)** | 지원 안 함 | 기본 요구 포맷 |
 | **전송 효율** | 낮음 (용량 큼) | 높음 (절반 크기) |
 
-❓ 왜 Float32 → Int16 변환이 필요한가?
+#### 왜 Float32 → Int16 변환이 필요한가?
 - Whisper, DeepSpeech 등 대부분의 STT 모델은 **Int16 PCM 입력만 지원**
 - 브라우저는 기본적으로 `Float32`로 마이크 입력을 처리하므로,
 - **모델 호환성과 전송 효율**을 위해 반드시 **Float32 → Int16 변환**이 필요  
 
-### ✅ 결론
+#### 결론
 > 변환은 브라우저 내 AudioWorklet에서 수행하거나, 서버에서 후처리 가능  
 > 하지만 **클라이언트 측에서 미리 Int16으로 변환하면** 서버 부하와 네트워크 사용량을 줄일 수 있음
 ---
-### 1️⃣6️⃣ Redis + Celery 구조 및 Task Queue 개념 정리
-### ❓  Redis는 어떤 역할?  
+### 16. Redis + Celery 구조 및 Task Queue 개념 정리
+### Redis는 어떤 역할?  
 Redis는 **인메모리 기반의 Key-Value 저장소**이자, 
 Redis는 Celery에서 **메시지 브로커(Broker)** 로 사용됩니다.  
 즉, FastAPI → Celery Task 요청 시, 작업 내용이 **Redis Queue로 전달되고**,  
 **Worker는 해당 Queue를 모니터링하면서 작업을 꺼내 실행**합니다.
 
-✅ Redis의 인메모리 특징
+#### Redis의 인메모리 특징
 
 | 항목             | 설명 |
 |------------------|------|
-| 🔄 **빠른 처리 속도** | 디스크 I/O 없이 메모리에서 직접 읽고 쓰므로 **지연시간이 매우 낮음 (sub-millisecond)** |
-| 📦 **데이터 휘발성** | 기본적으로 메모리에만 저장되므로 **서버 재시작 시 데이터 소실 가능**<br>(옵션으로 RDB or AOF 지속성 설정 가능) |
-| 💬 **브로커/캐시/세션** | 메시지 브로커 외에도 **캐시, 세션 저장소, Pub/Sub 등 다용도** 활용 가능 |
+| **빠른 처리 속도** | 디스크 I/O 없이 메모리에서 직접 읽고 쓰므로 **지연시간이 매우 낮음 (sub-millisecond)** |
+| **데이터 휘발성** | 기본적으로 메모리에만 저장되므로 **서버 재시작 시 데이터 소실 가능**<br>(옵션으로 RDB or AOF 지속성 설정 가능) |
+| **브로커/캐시/세션** | 메시지 브로커 외에도 **캐시, 세션 저장소, Pub/Sub 등 다용도** 활용 가능 |
 
-🔄 Redis 메시지 처리 방식 비교: Queue vs Pub/Sub
+#### Redis 메시지 처리 방식 비교: Queue vs Pub/Sub
 
 | 항목 | Redis List (Queue 방식) | Redis Pub/Sub (채널 발행/구독 방식) |
 |------|--------------------------|-------------------------------------|
@@ -261,16 +261,16 @@ Redis는 Celery에서 **메시지 브로커(Broker)** 로 사용됩니다.
 | 실무 사용 | 비동기 작업 큐, 처리 지연 허용 가능 | 알림, 채팅, 통계 알림 등 실시간 요구에 적합 |
 | WhisperTextAnalyzer 내 사용 | STT/감정 분석 요청 큐 (stt_queue / analyzer_queue) | STT 결과 및 통계 전송 (result_channel 등) |
 
-> ✅ 본 프로젝트에서는:
+> 본 프로젝트에서는:
 > - **작업 분산 및 안정성 필요 작업**은 `Celery + Redis Queue` 기반으로 처리
 > - **브라우저 실시간 알림**은 `Redis Pub/Sub` 방식으로 전달
 
-### ❓ Celery는 어떤 역할?
+### Celery는 어떤 역할?
 Celery는 Python 기반의 **비동기 작업 처리 프레임워크**입니다.  
 지정한 Task를 **Worker가 백그라운드에서 실행**하도록 분리할 수 있어,  
 API 서버와 무거운 작업을 **비동기/비차단 방식으로 분리**하는 데 효과적입니다.
 
-✅ Celery Task 분리로 얻는 이점
+#### Celery Task 분리로 얻는 이점
 
 | 항목                   | 효과                                                                 |
 |----------------------|----------------------------------------------------------------------|
@@ -279,7 +279,7 @@ API 서버와 무거운 작업을 **비동기/비차단 방식으로 분리**하
 | 확장성                 | 작업 종류(stt / analyzer 등)별로 Worker를 나누거나, Worker를 다중 실행하여 수평 확장 가능     |
 | 재시도 / 타임아웃 설정    | Celery Task에 retry, acks_late, time_limit 옵션 등을 추가해 작업 실패에 유연하게 대응 가능     |
 
-🛠️ 기본 Celery Task 호출 흐름  
+#### 기본 Celery Task 호출 흐름  
 
 ```
 FastAPI (Celery send_task) ⬅ queue="stt_queue" 등 지정
@@ -316,19 +316,19 @@ services:
 # -Q stt_queue 로 해당 Worker가 처리할 큐를 명시
 # --concurrency=1, --pool=solo → 윈도우 환경에서 안정 실행 필수 옵션
 ```
-❓ 왜 큐 이름을 명시해야 하나요?  
+#### 왜 큐 이름을 명시해야 하나요?  
 >Celery 기본 Queue 이름은 celery 여러 Worker/서비스가 존재할 경우,  
 명시하지 않으면 충돌 가능, 혹은 default Redis queue에 들어감  
 따라서 반드시 -Q 큐이름 및 queue="큐이름" 을 서버와 워커 양쪽에 명확히 지정해야 안정성 확보
 
 ---
 
-## 🚀 실 서비스 배포 경험
+## 실 서비스 배포 경험
 
 WhisperTextAnalyzer 프로젝트는 개발 → 테스트 → 실배포까지 모든 과정을 직접 수행했습니다.
-> 💡 실서비스 배포 과정에서 Nginx 설정, Docker 컨테이너 연결, HTTPS 인증 등 일부 생소한 구성 요소에 대해서는 ChatGPT의 도움을 참고하며 구성 효율을 높였습니다. 전체 배포 흐름과 연동 구조는 직접 설계 및 검증을 통해 완성했습니다.
+> 실서비스 배포 과정에서 Nginx 설정, Docker 컨테이너 연결, HTTPS 인증 등 일부 생소한 구성 요소에 대해서는 ChatGPT의 도움을 참고하며 구성 효율을 높였습니다. 전체 배포 흐름과 연동 구조는 직접 설계 및 검증을 통해 완성했습니다.
 
-### 🛠️ 배포 과정
+### 배포 과정
 - Azure Linux VM 실서버 구축
 - 개발 단계에서 ngrok로 HTTPS 개발 테스트
 - 무료 도메인 서비스 [DuckDNS](https://www.duckdns.org) 사용
@@ -336,11 +336,11 @@ WhisperTextAnalyzer 프로젝트는 개발 → 테스트 → 실배포까지 모
 - nginx + Docker + FastAPI 연동하여 구성
 - Celery Worker + Redis Broker + WebSocket 실시간 연동
 
-### 🌐 실 서비스 주소(현재는 막힘!)
+### 실 서비스 주소(현재는 막힘!)
 [https://whisperproject.duckdns.org/](https://whisperproject.duckdns.org/)
 ---
 
-## 💻 설치 및 실행 방법
+## 설치 및 실행 방법
 
 모든 서비스는 Docker Compose 기반으로 실행됩니다.  
 아래 명령어를 순서대로 입력하세요.
@@ -354,7 +354,7 @@ docker-compose up --scale stt_worker=2 -d
 ```
 
 ```bash
-💡 참고: 현재 compose에는 윈도용 --concurrency=1 --pool=solo 옵션이 이미 적용되어 있습니다.
+참고: 현재 compose에는 윈도용 --concurrency=1 --pool=solo 옵션이 이미 적용되어 있습니다.
 윈도우에서 사용시 stt_worker을 복사해서 stt_worker1로 사용하시면 됩니다.
 ```
 ### nginx 설정 예시
@@ -384,7 +384,7 @@ server {
     }
 }
 ```
-## 📁 폴더 구조
+## 폴더 구조
 
 ```
 WhisperTextAnalyzer/
@@ -403,7 +403,7 @@ WhisperTextAnalyzer/
 │ ├── listener_service.py
 │ └── requirements.txt
 │
-├── recorder_service/ # 🎙️ (로컬 테스트용) 마이크 입력 → Redis push
+├── recorder_service/ # (로컬 테스트용) 마이크 입력 → Redis push
 │ ├── Dockerfile
 │ ├── recorder_service.py
 │ └── requirements.txt
@@ -420,5 +420,5 @@ WhisperTextAnalyzer/
 ```
 ---
 
-## ⚠️ 주의사항 및 보안 권고
+## 주의사항 및 보안 권고
 본 프로젝트는 학습 및 데모용이며, 실제 서비스 배포 시 HTTPS 및 보안 설정을 반드시 강화하세요.
