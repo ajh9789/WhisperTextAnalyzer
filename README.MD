@@ -98,21 +98,21 @@ Browser 실시간 결과 표시
 
 | 개선 항목                                             | 상태 |
 |---------------------------------------------------|------|
-| Whisper 모델 STT 파이프라인                              | ✅ 완성 |
-| Sentiment 분석 모듈                                   | ✅ 완성 |
-| Listener 통계 처리                                    | ✅ 개선 완료 |
-| FastAPI WebSocket 서버                              | ✅ 개선 완료 |
-| 실시간 AudioWorklet + VAD 필터링                        | ✅ 적용 완료 |
-| Multi User Buffer 구조                              | ✅ 적용 완료 |
-| Silence Threshold 개선                              | ✅ 적용 완료 |
-| Whisper 입력 포맷(PCM → WAV 변환)                         | ✅ 구현 완료 |
-| WebSocket Binary 안정 수신 처리                         | ✅ 적용 완료 |
-| Celery 컨테이너 간 독립성 확보                              | ✅ 적용 완료 |
-| Redis Pub/Sub 다채널 구조 설계                           | ✅ 설계 반영 |
-| HTTPS/도메인 우회 테스트(ngrok)                           | ✅ 실습 완료 |
-| Azure VM + DuckDNS + SSL 인증서 + nginx + Docker 실서버 운영| ✅ 실배포 완료 |
+| Whisper 모델 STT 파이프라인                              | 완료 |
+| Sentiment 분석 모듈                                   | 완료 |
+| Listener 통계 처리                                    | 완료 |
+| FastAPI WebSocket 서버                              | 완료 |
+| 실시간 AudioWorklet + VAD 필터링                        | 완료 |
+| Multi User Buffer 구조                              | 완료 |
+| Silence Threshold 개선                              | 완료 |
+| Whisper 입력 포맷(PCM → WAV 변환)                         | 완료 |
+| WebSocket Binary 안정 수신 처리                         | 완료 |
+| Celery 컨테이너 간 독립성 확보                              | 완료 |
+| Redis Pub/Sub 다채널 구조 설계                           | 완료 |
+| HTTPS/도메인 우회 테스트(ngrok)                           | 완료 |
+| Azure VM + DuckDNS + SSL 인증서 + nginx + Docker 실서버 운영| 완료 |
 ---
-## 🧩 주요 문제 및 개선, 학습 내역 16개
+## 주요 문제 및 개선, 학습 내역 16개
 
 ### 1. whisper 패키지 충돌 → openai-whisper 명확히 사용
 
@@ -256,8 +256,8 @@ Redis는 Celery에서 **메시지 브로커(Broker)** 로 사용됩니다.
 | 목적 | 비동기 작업 처리 / 안정성 중심 | 실시간 브로드캐스트 중심 |
 | 생산자 | `lpush("queue", data)` | `publish("channel", data)` |
 | 소비자 | `blpop("queue")` – 큐에서 꺼내 작업 실행 | `subscribe("channel")` – 실시간 수신 |
-| 메시지 손실 | ❌ 소비자가 없어도 메시지 보존됨 | ⚠️ 구독자 없으면 메시지 유실됨 |
-| 순서 보장 | ✅ FIFO 보장 | ❌ 보장 안됨 |
+| 메시지 손실 | 소비자가 없어도 메시지 보존됨 | ⚠구독자 없으면 메시지 유실됨 |
+| 순서 보장 | FIFO 보장 | 보장 안됨 |
 | 실무 사용 | 비동기 작업 큐, 처리 지연 허용 가능 | 알림, 채팅, 통계 알림 등 실시간 요구에 적합 |
 | WhisperTextAnalyzer 내 사용 | STT/감정 분석 요청 큐 (stt_queue / analyzer_queue) | STT 결과 및 통계 전송 (result_channel 등) |
 
