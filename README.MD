@@ -86,7 +86,7 @@ Browser 실시간 결과 표시
 
 ---
 
-### 📋 주요 컨테이너
+### 주요 컨테이너
 
 - redis : Broker 역할
 - stt_worker : 음성 인식 STT 처리 (Celery) 
