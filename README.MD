@@ -26,7 +26,7 @@
 본 프로젝트는 학습을 위한 것으로 **MSA와 유사한 형태로 + 비동기 Task Queue 구조**를 직접 설계하고 **Docker 기반으로 배포**한 예제입니다.  
 - **브라우저 AudioWorklet → FastAPI WebSocket → Redis/Celery Task Queue → STT/감정 분석**  
 - 실제 서비스 흐름을 유사하게 구성하여, **실시간 음성 → 텍스트 → 감정 분석**까지 자동 처리하며  
-- **Azure Linux 서버 + nginx + DuckDNS + HTTPS 인증서**까지 포함한 **실제 배포 경험**까지 수행하였습니다.
+- **Azure Linux 서버 + nginx + DuckDNS + HTTPS 인증서**까지 포함한 **실제 배포(Azure) 경험**까지 수행하였습니다.
 ---
 ## WhisperTextAnalyzer 시스템 실행 예시
 
